@@ -1,0 +1,142 @@
+DEV NOTES
+
+30.05.2017 - KICK OFF
+- Template'ler çizildi
+- Fikir ana taslak olarak belirlendi
+
+MainScene
+- Phone contacts'tan kiþileri çekecek
+- Bu kiþileri isimlerine göre MainScene'de bulunan ListView'e atacak
+- ListView'deki adapter custom yapýlacak
+- Bu ListView'deki sýralama Social Points'e göre belirlenecek
+- Social points yapýlan aramalara göre bir puanlama sistemi
+- Progress bar'ýna benzer bir bar ile Social points görselleþtirilecek
+- ListView'deki bir item'e týklandýðýnda ilgili item için HistoryScene'e yönlendirilecek
+- Social points'in azalmasýna göre notification yapýlacak
+- Gerekli user-permission'lar alýnacak
+- SQLLite Kullanýlmasý amaçlanýyor ve dolayýsýyla Thread
+
+HistoryScene
+- Herbir kontak için özel bir HistoryScene olacak
+- HistoryScene'de bu kiþiye yapýlan en son aramalar ve temaslar listenelecek
+- Bir Floating Button ile bu kiþiyi arama saðlanabilecek
+
+ActionBar
+- Settings kýsmý eklenebilir
+
++ Diðer social network'ler ile güçlendirilebilir mi?
++ HistryScene'de arama seçeneðine basýldýðýnda bu social network'lere baðlanma özelliði olabilir mi?
+
+PersonData.class > Data Model
+
+03.06.2017
+- activity_main_layout oluþturuldu
+- fragment_main_layout oluþturuldu
+- PersonData Model oluþturuldu.
+- main_fragment_layout'un ana LinearLayout'unun içine ListView widget eklenir ve ID'si @android:id/list yapýlýr.
+- Liste boþ olduðunda gösterilecek text için ayný ana LinearLayout'un içinde ListView'in altýna TextView widget eklendi ve ID'si @android:empty yapýldý.
+- MainFragment'ta onCreateView cycle yapýldý ve MainActivity'de belirtilem FrameLayout container üzerine inflate yapýldý.
+- MainFragment on ActivityCreated cycle yapýldý. ArrayAdapter burda initiate yapýldý ve setListAdapter ile view ve model arasýnda baðlantý kuruldu.
+
+04.06.2017
+- Custom Adapter için kullanýlacak olan row layout hazýrlandý. bir ImageView ve 3 TextView konuldu.
+-CustomAdapter'in her row'u için özel row layout hazýrlandý. Bu row layout'ta 3 TextView birbirinden çok ayrý görünüyor ama ListView'e eklendiðinde aradaki bu mesafeler daralýyor.
+-PersonData class'ý için Singleton yapýldý. ArrayList<PersonData> olarak member field yapýldý. Getters & Setters'lar koyuldu.
+-Singleton'ý PersonDataSingleton.getInstance().getPersonDataList() kodunu assign yaparak kullanabilirsin. Singleton .add() ile dummy kod test edildi çalýþýyor.
+-CustomAdapter hazýrlandý. CustomAdapter içinde Singleton'ýn içindeki PersonDataList kullanýldý. TextView ve Resimler'e View-Model baðlantýsý yapýldý. getItem(position) methodu kulanýldý. 
+-CustomAdapter'da setText() methodunu int verilerine kullandýðýnda RunTime error veriyor. Bu nedenle int verileri String.valueOf() methodu ile String'e dönüþtürmen gerekli.
+-MainFragmnt'ta onActivityCreated cycle'da CustomAdapter oluþturuldu ve setListAdapter() methodu ile model-View baðlandý.
+-Farklý resimler ile test edildi. Adapter model ile view arasýndaki baðlantýyý saðlýyor.
+
+10.06.2017
+-PersonData'ya mSocialPoint field'i ekledim. Ve Custom Adapter ile MainFragment'ta ilgili düzeltmeleri yaptým. HistoryId'nin yerine SocialPoint gözükecek UI'de. Bluestacks'te test ettim çalýþýyor.
+-SocialPoint için CustomAdapter'da TextView yerine SeekBar eklendi. Seekbar.setClickable(false), SeekBar.setFocusable(false) ve seekBar.setEnabled(false) yapýldý. Bu sayede SeekBar'a herhangi bir þekilde dokuunamýyorsun. Tüm bunlarý setProgress() methodundan sonra yazdýk. Önce sonra bir etkisi olur mu? Denenebilir.
+-SeekBar.setProgress() methoduna parameter olarak SocialPoint eklendiðinde SeekBAr int olarak bu SocialPoint'i alýyor.
+-seekBar.setTHumb(null) yapýlarak bar üzerindeki gösterge kaldýrýldý.
+-AndroidMAnifest'te <application> hemen üstüne <uses-permission> ile phone contact için READ permission istedim.
+-CustomAdapter'da TextView ile aldýðýmýz Name ve Phoen neumber için TExtView yerine Phone Detaiks database'indeki isim ve telefon numaralarýný çekeceðiz. Bu nedenle cursor kullanýyoruz. getContentResolver() methodunu kullanabilmek için content'i tanýtmak gerekiyor bu nedenle bu meythodu getContent.getContentResolver() þeklinde kullanýyoruz.
+-projection isimli bir Array oluþturarak çekmek istediðimiz bilgileri bu array'e yazýyoruz. Sonra Cursor class oluþturarak bu bilgileri projection'ý burada kullanarak query ediyoruz. Cursor'ýn içinde getColumnIndex ve getString methodlarý ile bu bilgileri String'e dönüþtürüp kullanabiliyoruz.
+-Telefon numarasý ContactsContract.CommonDataKinds.Phone.NUMBER, Kontak ismi ise ContactsContract.Contacts.DISPLAY_NAME ile isteniyor. Aradaki farka dikkat et.
+-Kontaklara ulaþmak için permission'ý runtime'da istemek zorundayým aksi takdirde telefon izin vermiyor. Runtime error veriyor.
+-Önemli kýsayollar: alt+enter, crtl+space, Ctrl+Alt+O
+
+11.06.2017
+-Telefon'un Contact details'ýna girmek istediðimiz için API 23'ten büyük olan cihazlar için manifest'in yanýnda Runtime permission request gerekiyor. API 23'ten düþük olanlarda ise manifestte request yapmak yeterli. Bu cihazlarda siyah veya beyaz: Ya yükler herþeye ok verir ya da yüklemez zaten app çalýþmaz.
+-Runtime Permission için Support library kullanýmý tavsiye ediliyor ama ben library kullanmadým.
+-Ýlk önce OnCreate'te cihazýn API'sýne göre bir if condition yazýyoruz. API'sý 23'ten büyük olanlarýn permission'ýný kontrole diyoruz. Burada kullandýðýmýz checkSelfPermission() methodu sadece API 23 ve üzeri cihazlarda kullanýlabiliyor. READ_CONTACTS için izin sordum. Ýzi yoksa requestPermission() methodu ile izin talep ediyorsun. Burada rastgele bir static final constant ID numarasý vermen gerekiyor.
+-Ýzin istedikten sonra kullanýcýya bir dialog box ile allow veya deny seçeneði sunuluyor. Kullanýcýýn verdiði bu cevabý onCReate cycle'ýn dýþýnda onRequestPermissionsResult cycle'ý Override ederek öðrenebiliyoruz. Ama bu Cycle'ýn onCreate'in dýþýnda olduðu için kullanýcý Allow demiþse burada bir method çalýþtýrmak (örneðin fragment transaction) onCreate'e etki etmeyeceði için sadece bir kere çalýþýr, uygulamayý birkez ada baþlattýðýmýzda onCreate cycle'da birþey olmadýðý için bu method bir daha çalýþmaz Yani onRequestPermissionsResult kullanýcý ALLOW yanýtýný vermiþse birkez çalýlýyor ve bunu hafýza kaydediyor. Kullanýcý DENY yanýtýný verdiyse her uygulamayý çalýþtýrdýðýnda bu soru soruluyor, ta ki Kullanýcý "never ask again" diyene kadar. 
+- Bu nedenle fragment'ýn her açýldýðýnda çallýþmasý için ben aþaðýdaki yöntemi kullandým:
+1- if API > 23 ise
+     if checkSelfPermission()
+       izin varsa: fragment transaction
+     else
+       izin yoksa permissionRequest()
+
+2- if API < 23
+     direk fragment transaction
+
+3- if onRequestPermissionsResult
+     Kullanýcý ALLOw dediyse: fragment transaction
+    else
+      Kullanýcý DENY dediyse: Uyarý yazýsý veya baþka bir fragment
+
+- Dikkat edilmesi gereken bir nokta, onRequestPermissionsResult() cycle'da onCreate() cycle'da olduðu gibi savedInstanceState olmadýðý için fragment Transaction sýrasýnda ==null kullanamýyorsun. OnCreate() cycle'daki Bundle'ý variable kullanarak buraya taþýndý. (Bundle savedInstanceStateTwin = savedInstanceState gibi) 
+
+18.06.2017
+- CustommAdapter1 class'ýn da ArrayAdapter extendss edilmmiþ. Ancak sen Phone Contacts'larý çekebilmek için Cursor kullanýyorsun. Bu nedenle Cursor Adapter'ý inþa etmelisin.
+- Database'den SQLLite'tan veri alýnýyorsa bu Cursor oluyor ve bu durumda mutlaka CursorAdapter kullanýlmasý lazým. Zaten Phone COntacts verileri de Android'in kendi Database'inden çekiliyor.
+- CursorAdapter hazýrlandý. CursorAdapter newView ve bindView method'larý Override yapýldý. ContactsContract Cursor'u için projection ve getContentResolver() methodlarý CustomAdapter'ýn içinde deðil, MainFragment'ýn içinde kullanýldý. CustomAdapter'ýn içinde BindView method'unda getColumnIndex method'larý ile contactName ve contactNumber custom layout'taki ilgili wigdet'lar ile baðlandý.
+- CursorAdapter: Adapter that exposes data from a Cursor to a ListView widget.
+- The Cursor must include a column named "_id" or this class will not work. Therefore, you must add _id to the projection so that the resulting cursor will have that column. Bu nedenle MainFragment'ta Cursor'un projection Array'ýnde ilk item olark BaseColumns._ID
+- Recommended constructor: CursorAdapter(Context context, Cursor c, int flags). MainFragment'ta CursorAdapter'ýn bu consturtcor'ýna call yapýldý. Bu contsructor CustomCursorAdapter1 class'ýnda tanýmlanmýþtý.
+- Cursor'ýn Phone Contact Database'inden query'sini CustomCursorAdapter'dan alýp, MainFragment'e ekliyoruz. Llistview ile cursor'un birleþtirmesini MainFragment'ta yapýyoruz.
+- You should also call cursor.close() everytime you are done with your cursor. close() methodunu önce CursorAdapter'da denedim olmadý. Sonra MainFragment'ta denedim yine olmadý. Ýkisinde de Cursor kapandýktan sonra Cursor'a ulaþmaya çalýþýyorsun þeklinde bir hata mesajý geldi. close() methodunu tamamiyle kaldýrýnca Cursoradapter database'den bilgileri alýp View'lere aktardý. Ancak bizim mutlaka Cursor.close() yapmamýz gerekiyor. Bunu nerde Cursor.close() yapacaðýmýzý bul.
+- Cursor.moveToFirst(); þeklinde hiç method kullanýlmadý. ANcak birçok örnekte mevcut. Bu ne iþe yarar?
+- Adroid Studio emulator'de test edildiðinde normal sayýda Phone Contact listeye geliyor ama API düþük olan BlueStack'te test edildðinde ayný PhoneContact'tan iki tane listeye geliyor. Nedeni nedir? Sorun nasýl çözülür?
+
+24.06.2017
+- Geçen hafta Phone Contacts'ý telefonun database'inden Cursor olarak çektiðimiz için listview'de bunlarý gösterirken de CursorAdapter kullanmam gerektiðini yazmýþtým. Ama þimdi bunun yanlýþ olduðunu düþünüyorum. Database'den cursor olarak çekeceðiz. Ama sonra bu cursor'daki bilgileri String'e çevirip Array Adapter içinde kullanmayý deneyeceðiz.
+- Arrayadapter'ý eskisi gibi kurduk. Eski CUstomAdapter class'ý kullandýk. Burdaki tüm Cursor'larý sildik. Tüm cursor'larý MainFragment'ta kullandýk. Main Fragment'ta bir while methodu ile Cursor'larý içindeki DISPLAY_NAME ile PHONE_NUMBER'ý contactName ve contactNumber deðiþkenlerine aktardýk. while(mCursor.moveToNext() kullandýk. Bu deðiþkenleri Singleton içindeki PersonData ArrayList'in içine dummy kod ile birlikte yerleþtirdik. Çalýþtý.
+- PersonData içindeki PhoneNumber'ýn Type'ýný int'ten Strng'e çevirdik. Çünkü Cursor String olarak çekiyor ve PersonData Constructor'ý kullnýrken sorun oluyordu.
+-Cursor query'de ID'ye ek olarak LOOKUP_KEY'i de ekledik. Belirli bir contact'ý bulabilmek iiçin bu ikisini kullanacaðýz. Çünkü Contact'lar yenilenirse,  update yapýlýrsa ID ve LOOKUP_KEY deðiþiiyor. Test ettim LOOKUP_KEY'ins on 2-3 rakamý deðiþti. Bu nedenle bir cotact bluunurken LOOKUP_KEY'in kullanýp URÝ üzerinden gidilmeli yazýyor.
+
+02.07.2017
+- SQLite Database kuruldu. Yani bir class oluþturularak buraya SQLite database için gerekli callback method'lar yazýldý. 3 colum oluþturuldu - lookup, social points, history id. Daha sonra MainFragment sayfasýnda bu database initiate yapýldý ve bu Database'in lookup colunmuna CONTACTS'tan alýnan lookup key yerleþtirildi. 
+- YAPILACAKLAR: 1) Main Fragment'taki singleton içindei listeye new ile PersonData oluþturulurken while methodu içinde ikinci bir while methodu kullanýlarak ikinci Database'in içindeki social point ve history id fetch yapýþabilir mi? Burada iki Database arasýndaki ortak nokta Lookup ket olduu için bu lookup key üzerinden nasýl bu iki database birleþtrilebilir? 2)CONTACTS'tan alýnan lookup Key STring'ine match olan column bulunacaj bu bu columndaki social point ve history Id'ye ulaþýlacak.
+-MainFragment'ta onDestroy methodunda db.close() ile database'i leak yapmamasý için kapatýyoruz.
+!!!ÖNEMLÝ NOT!!!: SQLLiteDataBaseHelper onject'ini onCreate methodunun içinde declare yaptýðým için onCreate'in dýþýnda yani onDestory'da bu object'i tanýmýyordu. Yani bütün declaration'larý onCreate'in hemen üstünde yan global scope'ta yap!!!!
+
+04.07.2017
+- bir ara android studio'da emulator kullanarak test etme mekanizmasý çalýþmýyordu. LogCat'te Messages bölümünde Error:Execution failed for task ':app:buildInfoDebugLoader' hatasý veriyor ve uygulama açýlmýyor veya uygulamayý sildiðimde yeniden yüklemiyordu. BUILD > CLEAN Project yapýp sonra BUILD > Rebuild Project yapýnca sorun düzeldi.
+-SQLLite'te query() methodundaki parametreler aslýnda SELECT Columns FROM TABLE WHERE columns ... 'un virgüllerle ayrýlmýþ hali. Boþ býrakmak için null yazýyorsun.
+
+08.07.2017
+-cursor.movefirst kullanýlarak Cursor içindeki ilk recorda eriþilebilir.
+-sqllite database test edidi çalýþýyor
+-Nexus5'te Index -1 size 0 hatasý aldýk. Çünkü hiç kontak olmadýðý için database de hiç kontak look up key yoktu.
+-Uygulamalrýn içindeki dosyalarý görebilmek için Tools > Android > Android DEvice Monitor ADM kullanmak gerekli. Ancak API 24 ve üzerinde çalýþmýyor. Bu nedenle API 23 olan bir cihaz kullanýldý. Önce cihazda ilgili uygulamayý yükle. ADM yi çalýþtýr sonra uygulamayý tekrar çalýþtýr. ADM nin içinde File Explorer'dan data > data > uygulama ný bularak içindeki dosyalara ulaþabilirsin.
+-ADM çalýþtrýlmadan önce Tools'tan Enable ADB Integration check yapýldý.
+-File Explorer içinden text veya database dosyalarýný bulup Pull File from Device düðmesi ile masa üstüne kaydedebilirsin. Push File ile cihaza dosya kaydedebilirsin.
+-Database dosyalarýný açabilmek içiin third party program indirmek gerekli. Vey github internet sitesindeki bir sayfadan kontrol edilebiliyor. (http://inloop.github.io/sqlite-viewer/)
+- Database konrol edildi. Yazýlan kod ile Contacts database'inden Look-up Key String olarak alýnýp SOcialbars database'indeki Look_up sütununa String olarak atýlýyor.
+-ADM'ün çalýþmasý için Android Studio'yu yönetici olarak baþlat
+
+09.07.2017
+-Datasabe'de query methodunda slection parametresinde sonunda mutlaka +"=?" kullanman gerekiyor. Çünkü bu iþaret kaç tane arguement'a ihtiyacýn olduðunu belirtiyor. Bir sonraki selectionArgs Array'inde bu iþaret replace ediliyor gibi düþünebilirsin. Yoksa java.lang.IllegalArgumentException: hata mesajý alýyorsun
+-Sqllite database'de values'e social points ve history_id random verileri de eklendi ve databae'e insert yapýldý.
+- Database query methodunda .... Look_up key'ine sahip Social_points sütunundaki veriler fetch yapýldý. TEst baþarýlý oldu.
+- Uygulama her baþlatýldýðýnda socialbars database'indeki tabloya ayný veriler tekrar tekrar giriliyor. Tekrarý önlemek için bir þey yapmak lazým.
+- ÖNERÝ: Bir düðme eklenip, bu düðmeye basýldýðýnda .... LOOK_UP key'e sahip social points +20 adtsýn dene. Yapýlabiyor mu? Bunu Phone call'a baðlayacaðýz. Ayrýca tüm bu database write/read olayýný diðer Contact database'indeki while içinde yapabiliyor muyuz? Yapabiliyorsak belki bunu ayrý bir method olaak yapýpý sonra sadece bu methodu while içinde burda call yapabiliriz.
+
+29.07.2017
+-bir kiþinin lookup key'den social points arttýrýlabilir mi? bu denendi. testString int yapýldý. CUrsor'dan getString methodu yerine getInt() methodu kullanýldý. 20 ilave edilerek farklý bir COntenValues kullanýlarak database table'a eklendi. Öellikle .... Lookup Key'in satýrýna eklenebilmesi için update() methodu kullanýldý. var olan belirli bir record'u güncellemek istiyorsan update() kullan. Çünkü Burada bir where clause mevcut. Bu where clause2una hangi lookup key'in bulundupu satýrýn güncellenmesi isteniyorsa o yazýlýyor. Bu þekilde tabloda o satýr update oluyor. Hangi ContentValues eklendiyse sadece o sütün update oluyor. Diðerleri ayný kalýyor.
+-Update() mehodunu kullanýrken selection alanýnda column name'in sonuna +"= ?" koymak gerekiyor. Yoksa java.lang.IllegalArgumentException: Too many bind arguments.  2 arguments were provided but the statement needs 1 arguments hatasý veriyor. 
+-insert yerine replace() methodunu kullan. Çünkü bu method eger record varsa onu güncelliyor yeni oluþturöuyor. Eðer record yoksa onu oluturuyor. BEst of both worlds. Insert sadece yeni satýr ekliyor.
+-ayný deðer varsa ilave database'e ekleme yapýlmasýn. Bu sayede zaten otomatik baðlantý kurulmuþ olacak loookup key'ler üzerinden?
+- PRoblem: Social poimts arttýrma süreci sadece bir sonraki record'a etki yapýyor. Yani 90 - 90 - 90 - 70 diye gidiyor. Baþtaki 110 olmuyor yani. Burda ayrýca replace() methodu da düþündüðümüz gibi çalýþmadý. Yani hr seferinde yeni bir kayýt ekleniyor.
+
+30.07.2017
+-Spcial points icrease sorunu çözüldü. Yöntem olarak: 1. list içeren mainfragment layout'un en altýna bir layout ve icine bir dugme eklendi. 2.Fragment'a View.OnClickListener interface implent edildi. OnCreateView içinde bu düðme initiliaze yapýldý ve .setOnclicklistener(this) methodu ile listener eklendi. OnCreateView'ýn dýþýna tamamen ayrý olarak public void onClick(View view) methodu override yapýldý. Bu methoda button id'sini tanýyacak þekilde swithc-case yapýldý. Bu onClick methodu içine daha önce oCreate cycle'da bulunan sqlDbRead, sqlWrite, projectionTest, cursorTest bu method'un içine alýndý. Daha sonra method'a bir while eklendi. Bu  while'a Social Points increase için ilgili statement ve method'lar yazýldý. While bittikten sonra da sqlRead ve sqlWrite close ile kapatýldý. Yöntem test edildi. Her düðmeye basýldýðýnda artýþ Toast mesajýnda görünüyor. Ayrý bir methoda yüklenebilir. Facade design pattern.
+- Bu yöntemde kulanýlan cursor ve sqlRead gibi objeler için if clause ile varsa yeniden oluþturma gibi bir çalýþma yapýlmasý gerekir mi? Örnek:if(cursor != null && !cursor.isClosed()){ cursor.close(); }  
+ 
+
